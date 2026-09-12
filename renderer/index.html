@@ -39,6 +39,10 @@
       transform: scaleX(-1);
     }
 
+    #stop-camera {
+      margin-top: 10px;
+    }
+
     #warning {
       width: 200px;
       height: 200px;
@@ -62,6 +66,7 @@
 
   <div class="left">
     <div class="camera">blank</div>
+    <button id="stop-camera" disabled>Close Camera</button>
   </div>
 
   <div class="right">
@@ -77,6 +82,7 @@
 
   <script>
     const camBox = document.querySelector('.camera');
+    const stopButton = document.querySelector('#stop-camera');
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: false })
       .then(function (stream) {
@@ -88,6 +94,16 @@
 
         camBox.textContent = '';
         camBox.appendChild(video);
+
+        stopButton.disabled = false;
+        stopButton.addEventListener('click', function () {
+          stream.getTracks().forEach(function (track) {
+            track.stop();
+          });
+          video.srcObject = null;
+          camBox.textContent = 'camera off';
+          stopButton.disabled = true;
+        });
       })
       .catch(function (err) {
         camBox.textContent = 'camera error: ' + err.name;
