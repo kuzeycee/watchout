@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>WatchOut</title>
+
+  <style>
+    body {
+      background: white;
+      color: black;
+      font-family: Arial, sans-serif;
+      font-size: 15px;
+      padding: 20px;
+    }
+
+    .left, .right {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    .right {
+      margin-left: 30px;
+    }
+
+    .camera {
+      width: 640px;
+      height: 480px;
+      background: #bfd;
+      border: 1px solid #999;
+      color: #456;
+      padding: 10px;
+    }
+
+    #warning {
+      width: 200px;
+      height: 200px;
+      background: red;
+      border-radius: 50%;
+      position: fixed;
+      top: 200px;
+      left: 400px;
+      color: white;
+      padding: 90px 0 0 0;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  WatchOut
+
+  <br><br>
+
+  <div class="left">
+    <div class="camera">blank</div>
+  </div>
+
+  <div class="right">
+    <p>EYES: <span id="current">open</span></p>
+    <p>EAR: <span id="ear">0.31</span></p>
+    <p>Time has been after the last blink: <span id="time">2.4</span> seconds</p>
+    <p>Blink no until now: <span id="blink">0</span></p>
+    <p>warning no until now: <span id="no-of-warning">0</span></p>
+    <p>After break: <span id="break">20:00</span></p>
+  </div>
+
+  <div id="warning" style="display:none">OPEN YOUR EYES</div>
+
+</body>
+</html>
