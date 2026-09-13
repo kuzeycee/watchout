@@ -48,16 +48,14 @@
       }
 
       #warning {
-        width: 200px;
-        height: 200px;
+        width: 24px;
+        height: 24px;
         background: red;
         border-radius: 50%;
         position: fixed;
-        top: 200px;
-        left: 400px;
-        color: white;
-        padding: 90px 0 0 0;
-        text-align: center;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
       }
     </style>
 </head>
@@ -82,7 +80,7 @@
     <p>After break: <span id="break">20:00</span></p>
 </div>
 
-<div id="warning" style="display:none">OPEN YOUR EYES</div>
+<div id="warning" style="display:none"></div>
 
 <script type="module">
     import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/vision_bundle.mjs';
@@ -159,7 +157,7 @@
 
     function detectEyes(video) {
       let lastVidTime = -1;
-      let closedSince = null;
+      let eyesClosed = false;
       let warningShown = false;
       let lastBlinkTime = performance.now();
 
@@ -185,30 +183,15 @@
             blinkScoreSpan.textContent = blinkScore.toFixed(2);
             eyesSpan.textContent = blinkScore > 0.5 ? 'closed' : 'open';
 
-            const now = performance.now();
-
             if (blinkScore > 0.5) {
-              if (closedSince === null) {
-                closedSince = now;
-              }
-
-              if (!warningShown && now - closedSince >= 4000) {
-                warningShown = true;
-                warningCircle.style.display = 'block';
-                warningCount++;
-                warningCountSpan.textContent = warningCount;
-              }
-            } else if (closedSince !== null) {
-              if (warningShown) {
-                warningCircle.style.display = 'none';
-              } else {
-                blinkCount++;
-                blinkSpan.textContent = blinkCount;
-                lastBlinkTime = now;
-              }
-
-              closedSince = null;
+              eyesClosed = true;
+            } else if (eyesClosed) {
+              eyesClosed = false;
+              blinkCount++;
+              blinkSpan.textContent = blinkCount;
+              lastBlinkTime = performance.now();
               warningShown = false;
+              warningCircle.style.display = 'none';
             }
           } else {
             eyesSpan.textContent = 'no face';
@@ -216,7 +199,15 @@
           }
         }
 
-        timeSpan.textContent = ((performance.now() - lastBlinkTime) / 1000).toFixed(1);
+        const noBlinkTime = performance.now() - lastBlinkTime;
+        timeSpan.textContent = (noBlinkTime / 1000).toFixed(1);
+
+        if (!warningShown && noBlinkTime >= 4000) {
+          warningShown = true;
+          warningCircle.style.display = 'block';
+          warningCount++;
+          warningCountSpan.textContent = warningCount;
+        }
 
         requestAnimationFrame(loop);
       }
