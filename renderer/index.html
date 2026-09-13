@@ -91,6 +91,12 @@
     const camButton = document.querySelector('#stop-camera');
     const eyesSpan = document.querySelector('#current');
     const blinkScoreSpan = document.querySelector('#blink-score');
+    const warningCircle = document.querySelector('#warning');
+    const blinkSpan = document.querySelector('#blink');
+    const warningCountSpan = document.querySelector('#no-of-warning');
+    const timeSpan = document.querySelector('#time');
+    let blinkCount = 0;
+    let warningCount = 0;
     let stream = null;
     let faceLandmarker = null;
 
@@ -153,11 +159,15 @@
 
     function detectEyes(video) {
       let lastVidTime = -1;
+      let closedSince = null;
+      let warningShown = false;
+      let lastBlinkTime = performance.now();
 
       function loop() {
         if (video.srcObject !== stream) {
           eyesSpan.textContent = '-';
           blinkScoreSpan.textContent = '-';
+          warningCircle.style.display = 'none';
           return;
         }
 
@@ -174,11 +184,39 @@
 
             blinkScoreSpan.textContent = blinkScore.toFixed(2);
             eyesSpan.textContent = blinkScore > 0.5 ? 'closed' : 'open';
+
+            const now = performance.now();
+
+            if (blinkScore > 0.5) {
+              if (closedSince === null) {
+                closedSince = now;
+              }
+
+              if (!warningShown && now - closedSince >= 4000) {
+                warningShown = true;
+                warningCircle.style.display = 'block';
+                warningCount++;
+                warningCountSpan.textContent = warningCount;
+              }
+            } else if (closedSince !== null) {
+              if (warningShown) {
+                warningCircle.style.display = 'none';
+              } else {
+                blinkCount++;
+                blinkSpan.textContent = blinkCount;
+                lastBlinkTime = now;
+              }
+
+              closedSince = null;
+              warningShown = false;
+            }
           } else {
             eyesSpan.textContent = 'no face';
             blinkScoreSpan.textContent = '-';
           }
         }
+
+        timeSpan.textContent = ((performance.now() - lastBlinkTime) / 1000).toFixed(1);
 
         requestAnimationFrame(loop);
       }
