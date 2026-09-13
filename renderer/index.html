@@ -84,10 +84,34 @@
 
 <div id="warning" style="display:none">OPEN YOUR EYES</div>
 
-<script>
+<script type="module">
+    import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/vision_bundle.mjs';
+
     const camBox = document.querySelector('.camera');
     const camButton = document.querySelector('#stop-camera');
+    const eyesSpan = document.querySelector('#current');
     let stream = null;
+    let faceLandmarker = null;
+
+    FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm')
+      .then(function (vision) {
+        return FaceLandmarker.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+            delegate: 'GPU'
+          },
+          runningMode: 'VIDEO',
+          numFaces: 1,
+          outputFaceBlendshapes: true
+        });
+      })
+      .then(function (landmarker) {
+        faceLandmarker = landmarker;
+      })
+      .catch(function (err) {
+        eyesSpan.textContent = 'model error';
+        console.error(err);
+      });
 
     function openCam() {
       camButton.disabled = true;
@@ -104,6 +128,7 @@
 
           camBox.textContent = '';
           camBox.appendChild(video);
+          detectEyes(video);
 
           camButton.textContent = 'Close Camera';
           camButton.disabled = false;
@@ -123,6 +148,36 @@
 
       camBox.textContent = 'cam off';
       camButton.textContent = 'Open Camera';
+    }
+
+    function detectEyes(video) {
+      let lastVidTime = -1;
+
+      function loop() {
+        if (video.srcObject !== stream) {
+          eyesSpan.textContent = '-';
+          return;
+        }
+
+        if (faceLandmarker && video.readyState >= 2 && video.currentTime !== lastVidTime) {
+          lastVidTime = video.currentTime;
+          const result = faceLandmarker.detectForVideo(video, performance.now());
+
+          if (result.faceBlendshapes.length > 0) {
+            const categories = result.faceBlendshapes[0].categories;
+            const blinkLeft = categories.find(function (c) { return c.categoryName === 'eyeBlinkLeft'; }).score;
+            const blinkRight = categories.find(function (c) { return c.categoryName === 'eyeBlinkRight'; }).score;
+
+            eyesSpan.textContent = (blinkLeft + blinkRight) / 2 > 0.5 ? 'closed' : 'open';
+          } else {
+            eyesSpan.textContent = 'no face';
+          }
+        }
+
+        requestAnimationFrame(loop);
+      }
+
+      requestAnimationFrame(loop);
     }
 
     camButton.addEventListener('click', function () {
