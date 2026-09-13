@@ -1,114 +1,140 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>WatchOut</title>
+    <meta charset="utf-8" />
+    <title>WatchOut</title>
 
-  <style>
-    body {
-      background: white;
-      color: black;
-      font-family: Arial, sans-serif;
-      font-size: 15px;
-      padding: 20px;
-    }
+    <style>
+        #app-title {
+        font-family: 'Georgia', serif;
+        font-size: 28px;
+        }
+      body {
+        background: white;
+        color: black;
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+        padding: 20px;
+      }
 
-    .left, .right {
-      display: inline-block;
-      vertical-align: top;
-    }
+      .left, .right {
+        display: inline-block;
+        vertical-align: top;
+      }
 
-    .right {
-      margin-left: 30px;
-    }
+      .right {
+        margin-left: 30px;
+      }
 
-    .camera {
-      width: 640px;
-      height: 480px;
-      background: #bfd;
-      border: 1px solid #999;
-      color: #456;
-      padding: 10px;
-    }
+      .camera {
+        width: 640px;
+        height: 480px;
+        background: #bfd;
+        border: 1px solid #999;
+        color: #456;
+        padding: 10px;
+      }
 
-    .camera video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transform: scaleX(-1);
-    }
+      .camera video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform: scaleX(-1);
+      }
 
-    #stop-camera {
-      margin-top: 10px;
-    }
+      #stop-camera {
+        margin-top: 10px;
+      }
 
-    #warning {
-      width: 200px;
-      height: 200px;
-      background: red;
-      border-radius: 50%;
-      position: fixed;
-      top: 200px;
-      left: 400px;
-      color: white;
-      padding: 90px 0 0 0;
-      text-align: center;
-    }
-  </style>
+      #warning {
+        width: 200px;
+        height: 200px;
+        background: red;
+        border-radius: 50%;
+        position: fixed;
+        top: 200px;
+        left: 400px;
+        color: white;
+        padding: 90px 0 0 0;
+        text-align: center;
+      }
+    </style>
 </head>
 
 <body>
 
-  WatchOut
+<h1 id="app-title">WatchOut</h1>
 
-  <br><br>
+<br><br>
 
-  <div class="left">
+<div class="left">
     <div class="camera">blank</div>
     <button id="stop-camera" disabled>Close Camera</button>
-  </div>
+</div>
 
-  <div class="right">
+<div class="right">
     <p>EYES: <span id="current">open</span></p>
     <p>EAR: <span id="ear">0.31</span></p>
     <p>Time has been after the last blink: <span id="time">2.4</span> seconds</p>
     <p>Blink no until now: <span id="blink">0</span></p>
     <p>warning no until now: <span id="no-of-warning">0</span></p>
     <p>After break: <span id="break">20:00</span></p>
-  </div>
+</div>
 
-  <div id="warning" style="display:none">OPEN YOUR EYES</div>
+<div id="warning" style="display:none">OPEN YOUR EYES</div>
 
-  <script>
+<script>
     const camBox = document.querySelector('.camera');
-    const stopButton = document.querySelector('#stop-camera');
+    const camButton = document.querySelector('#stop-camera');
+    let stream = null;
 
-    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-      .then(function (stream) {
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.autoplay = true;
-        video.playsInline = true;
-        video.muted = true;
+    function openCam() {
+      camButton.disabled = true;
 
-        camBox.textContent = '';
-        camBox.appendChild(video);
+      navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+        .then(function (newStream) {
+          stream = newStream;
 
-        stopButton.disabled = false;
-        stopButton.addEventListener('click', function () {
-          stream.getTracks().forEach(function (track) {
-            track.stop();
-          });
-          video.srcObject = null;
-          camBox.textContent = 'camera off';
-          stopButton.disabled = true;
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          video.autoplay = true;
+          video.playsInline = true;
+          video.muted = true;
+
+          camBox.textContent = '';
+          camBox.appendChild(video);
+
+          camButton.textContent = 'Close Camera';
+          camButton.disabled = false;
+        })
+        .catch(function (err) {
+          camBox.textContent = 'camera error: ' + err.name;
+          camButton.textContent = 'Open Camera';
+          camButton.disabled = false;
         });
-      })
-      .catch(function (err) {
-        camBox.textContent = 'camera error: ' + err.name;
+    }
+
+    function closeCam() {
+      stream.getTracks().forEach(function (track) {
+        track.stop();
       });
-  </script>
+      stream = null;
+
+      camBox.textContent = 'camera off';
+      camButton.textContent = 'Open Camera';
+    }
+
+    camButton.addEventListener('click', function () {
+      if (stream) {
+        closeCam();
+      } else {
+        openCam();
+      }
+    });
+
+    openCam();
+</script>
 
 </body>
 </html>
