@@ -158,6 +158,7 @@
     function detectEyes(video) {
       let lastVidTime = -1;
       let eyesClosed = false;
+      let faceVisible = false;
       let warningShown = false;
       let lastBlinkTime = performance.now();
 
@@ -173,7 +174,9 @@
           lastVidTime = video.currentTime;
           const result = faceLandmarker.detectForVideo(video, performance.now());
 
-          if (result.faceBlendshapes.length > 0) {
+          faceVisible = result.faceBlendshapes.length > 0;
+
+          if (faceVisible) {
             const categories = result.faceBlendshapes[0].categories;
             const blinkLeft = categories.find(function (c) { return c.categoryName === 'eyeBlinkLeft'; }).score;
             const blinkRight = categories.find(function (c) { return c.categoryName === 'eyeBlinkRight'; }).score;
@@ -196,7 +199,14 @@
           } else {
             eyesSpan.textContent = 'no face';
             blinkScoreSpan.textContent = '-';
+            eyesClosed = false;
           }
+        }
+
+        if (!faceVisible) {
+          lastBlinkTime = performance.now();
+          warningShown = false;
+          warningCircle.style.display = 'none';
         }
 
         const noBlinkTime = performance.now() - lastBlinkTime;
