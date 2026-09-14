@@ -282,11 +282,22 @@
       camBox.textContent = 'cam off';
     }
 
+    let alertOn = false;
+
+    function setWarning(on) {
+      warningCircle.style.display = on ? 'block' : 'none';
+
+      if (window.api && on !== alertOn) {
+        alertOn = on;
+        window.api.alert(on);
+      }
+    }
+
     function stopDetection() {
       loopId++;
       eyesSpan.textContent = '-';
       blinkScoreSpan.textContent = '-';
-      warningCircle.style.display = 'none';
+      setWarning(false);
     }
 
     function detectEyes() {
@@ -316,9 +327,9 @@
             const blinkScore = (blinkLeft + blinkRight) / 2;
 
             blinkScoreSpan.textContent = blinkScore.toFixed(2);
-            eyesSpan.textContent = blinkScore > 0.5 ? 'closed' : 'open';
+            eyesSpan.textContent = blinkScore > 0.42 ? 'closed' : 'open';
 
-            if (blinkScore > 0.5) {
+            if (blinkScore > 0.42) {
               eyesClosed = true;
             } else if (eyesClosed) {
               eyesClosed = false;
@@ -326,7 +337,7 @@
               blinkSpan.textContent = blinkCount;
               lastBlinkTime = performance.now();
               warningShown = false;
-              warningCircle.style.display = 'none';
+              setWarning(false);
             }
           } else {
             eyesSpan.textContent = 'no face';
@@ -338,7 +349,7 @@
         if (!faceVisible) {
           lastBlinkTime = performance.now();
           warningShown = false;
-          warningCircle.style.display = 'none';
+          setWarning(false);
         }
 
         const noBlinkTime = performance.now() - lastBlinkTime;
@@ -346,7 +357,7 @@
 
         if (!warningShown && noBlinkTime >= 4000) {
           warningShown = true;
-          warningCircle.style.display = 'block';
+          setWarning(true);
           warningCount++;
           warningCountSpan.textContent = warningCount;
         }
