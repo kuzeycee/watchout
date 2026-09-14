@@ -70,9 +70,26 @@
         transform: translate(-50%, -50%);
       }
     </style>
+    <link rel="stylesheet" href="mini.css" />
+    <script src="mini.js"></script>
 </head>
 
 <body>
+
+<div id="drag"></div>
+
+<div id="mini">
+    <button id="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+    </button>
+    <div id="menu" hidden>
+        <button id="open-dashboard">Open Dashboard</button>
+        <button id="quit">Quit</button>
+    </div>
+</div>
 
 <h1 id="app-title">WatchOut</h1>
 
@@ -85,6 +102,7 @@
         <button id="take-break" hidden>Take a Break</button>
         <button id="resume" hidden>Resume</button>
         <button id="end-session" hidden>End Session</button>
+        <button id="minimize">Minimize</button>
     </div>
 </div>
 
