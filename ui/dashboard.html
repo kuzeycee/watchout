@@ -340,7 +340,7 @@
         const dry = performance.now() - lastBlink;
         timeTxt.textContent = (dry / 1000).toFixed(1);
 
-        if (!warned && dry >= 4000) {
+        if (!warned && dry >= 8000) {
           warned = true;
           warn(true);
           warns++;
