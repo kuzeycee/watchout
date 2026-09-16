@@ -86,17 +86,6 @@
         font-size: 18px;
         font-weight: bold;
       }
-
-      #warning {
-        width: 24px;
-        height: 24px;
-        background: red;
-        border-radius: 50%;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
     </style>
 </head>
 
@@ -137,7 +126,6 @@
     </div>
 </div>
 
-<div id="warning" style="display:none"></div>
 <div id="break-alert" hidden>Look 20 feet away for 20 seconds</div>
 
 <script type="module">
@@ -152,7 +140,6 @@
     const sound = document.querySelector('#sound');
     const eyes = document.querySelector('#current');
     const score = document.querySelector('#blink-score');
-    const redDot = document.querySelector('#warning');
     const blinkTxt = document.querySelector('#blink');
     const warnTxt = document.querySelector('#no-of-warning');
     const timeTxt = document.querySelector('#time');
@@ -163,7 +150,7 @@
     const sumBlinks = document.querySelector('#summary-blinks');
     const sumWarns = document.querySelector('#summary-warnings');
     const sumTip = document.querySelector('#summary-tip');
-    const breakGap = 20 * 60 * 1000;
+    const breakGap = 10 * 1000;
     const restGap = 40 * 1000;
 
     let blinks = 0;
@@ -405,8 +392,6 @@
     }
 
     function warn(on) {
-      redDot.style.display = on ? 'block' : 'none';
-
       if (window.api && on !== dotOn) {
         dotOn = on;
         window.api.dot(on);
