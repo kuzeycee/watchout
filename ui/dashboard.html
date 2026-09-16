@@ -41,6 +41,11 @@
         white-space: nowrap;
       }
 
+      #summary-tip {
+        margin-top: 10px;
+        line-height: 1.45;
+      }
+
       .camera {
         width: 640px;
         height: 480px;
@@ -111,12 +116,12 @@
 
 <div class="right">
     <table>
-        <tr><td>EYES</td><td><span id="current">open</span></td></tr>
-        <tr><td>Blink Score</td><td><span id="blink-score">-</span></td></tr>
-        <tr><td>Time has been after the last blink</td><td><span id="time">2.4</span> seconds</td></tr>
-        <tr><td>Blink no until now</td><td><span id="blink">0</span></td></tr>
-        <tr><td>warning no until now</td><td><span id="no-of-warning">0</span></td></tr>
-        <tr><td>After break</td><td><span id="break">20:00</span></td></tr>
+        <tr><td>Eyes</td><td><span id="current">open</span></td></tr>
+        <tr><td>Blink score</td><td><span id="blink-score">-</span></td></tr>
+        <tr><td>Time since last blink</td><td><span id="time">2.4</span> seconds</td></tr>
+        <tr><td>Blinks</td><td><span id="blink">0</span></td></tr>
+        <tr><td>Warnings</td><td><span id="no-of-warning">0</span></td></tr>
+        <tr><td>Next break in</td><td><span id="break">20:00</span></td></tr>
     </table>
 
     <div id="summary" hidden>
@@ -126,6 +131,7 @@
             <tr><td>Total blinks</td><td><span id="summary-blinks">0</span></td></tr>
             <tr><td>Total warnings</td><td><span id="summary-warnings">0</span></td></tr>
         </table>
+        <p id="summary-tip"></p>
     </div>
 </div>
 
@@ -154,7 +160,8 @@
     const sumTime = document.querySelector('#summary-time');
     const sumBlinks = document.querySelector('#summary-blinks');
     const sumWarns = document.querySelector('#summary-warnings');
-    const breakGap = 20 * 1000;
+    const sumTip = document.querySelector('#summary-tip');
+    const breakGap = 20 * 60 * 1000;
     const restGap = 40 * 1000;
 
     let blinks = 0;
@@ -201,6 +208,41 @@
       const mins = String(Math.floor((all % 3600) / 60)).padStart(2, '0');
       const secs = String(all % 60).padStart(2, '0');
       return hrs > 0 ? hrs + ':' + mins + ':' + secs : mins + ':' + secs;
+    }
+
+    function advise(ms, count) {
+      const mins = ms / 60000;
+
+      if (mins < 2) {
+        return 'Too short to judge. Track for at least five minutes to get a reading worth trusting.';
+      }
+
+      const rate = count / mins;
+      let tip = '';
+
+      if (rate < 4) {
+        tip = 'Your blink rate was very low at ' + rate.toFixed(1) + ' per minute. Eyes this dry tend to sting by the end of the day. Rest them now, and keep the 20-20-20 breaks from here on.';
+      } else if (rate < 8) {
+        tip = 'Your blink rate was low at ' + rate.toFixed(1) + ' per minute, which is common when reading on a screen. Blinking on purpose every so often helps more than it sounds.';
+      } else if (rate < 12) {
+        tip = 'Your blink rate was a little under normal at ' + rate.toFixed(1) + ' per minute. Nothing worrying, but a deliberate blink now and then would close the gap.';
+      } else if (rate < 20) {
+        tip = 'Your blink rate was healthy at ' + rate.toFixed(1) + ' per minute. Whatever you did in this session, keep doing it.';
+      } else if (rate < 30) {
+        tip = 'Your blink rate was above average at ' + rate.toFixed(1) + ' per minute. That often means your eyes are working against dryness or glare. Check the screen brightness and the air in the room.';
+      } else {
+        tip = 'Your blink rate was unusually high at ' + rate.toFixed(1) + ' per minute. Blinking that often can point to irritation or strain. If it carries on across sessions, it is worth raising with an optician.';
+      }
+
+      if (mins >= 90) {
+        return tip + ' You also stayed at it for over an hour and a half without stopping, which is a long stretch for one sitting.';
+      }
+
+      if (mins >= 45) {
+        return tip + ' This was a long session, so a proper screen-free break will do more for you than another short one.';
+      }
+
+      return tip;
     }
 
     function showLeft() {
@@ -536,6 +578,7 @@
       sumTime.textContent = fmt(ran);
       sumBlinks.textContent = blinks;
       sumWarns.textContent = warns;
+      sumTip.textContent = advise(ran, blinks);
       sumBox.hidden = false;
     });
 
