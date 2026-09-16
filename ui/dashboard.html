@@ -27,10 +27,18 @@
         margin-left: 30px;
       }
 
+      .right td {
+        padding: 2px 0;
+      }
+
+      .right td + td {
+        padding-left: 14px;
+      }
+
       .camera {
         width: 640px;
         height: 480px;
-        background: #bfd;
+        background: #eee;
         border: 1px solid #999;
         color: #456;
         padding: 10px;
@@ -91,18 +99,22 @@
 </div>
 
 <div class="right">
-    <p>EYES: <span id="current">open</span></p>
-    <p>Blink Score: <span id="blink-score">-</span></p>
-    <p>Time has been after the last blink: <span id="time">2.4</span> seconds</p>
-    <p>Blink no until now: <span id="blink">0</span></p>
-    <p>warning no until now: <span id="no-of-warning">0</span></p>
-    <p>After break: <span id="break">20:00</span></p>
+    <table>
+        <tr><td>EYES</td><td><span id="current">open</span></td></tr>
+        <tr><td>Blink Score</td><td><span id="blink-score">-</span></td></tr>
+        <tr><td>Time has been after the last blink</td><td><span id="time">2.4</span> seconds</td></tr>
+        <tr><td>Blink no until now</td><td><span id="blink">0</span></td></tr>
+        <tr><td>warning no until now</td><td><span id="no-of-warning">0</span></td></tr>
+        <tr><td>After break</td><td><span id="break">20:00</span></td></tr>
+    </table>
 
     <div id="summary" hidden>
         <h3>Session Summary</h3>
-        <p>Total time: <span id="summary-time">00:00</span></p>
-        <p>Total blinks: <span id="summary-blinks">0</span></p>
-        <p>Total warnings: <span id="summary-warnings">0</span></p>
+        <table>
+            <tr><td>Total time</td><td><span id="summary-time">00:00</span></td></tr>
+            <tr><td>Total blinks</td><td><span id="summary-blinks">0</span></td></tr>
+            <tr><td>Total warnings</td><td><span id="summary-warnings">0</span></td></tr>
+        </table>
     </div>
 </div>
 
