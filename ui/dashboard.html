@@ -62,6 +62,10 @@
         margin-top: 10px;
       }
 
+      .controls label {
+        margin-left: 10px;
+      }
+
       #break-alert {
         position: fixed;
         top: 20px;
@@ -101,6 +105,7 @@
         <button id="resume" hidden>Resume</button>
         <button id="end-session" hidden>End Session</button>
         <button id="minimize">Minimize</button>
+        <label><input type="checkbox" id="sound" checked /> Sound</label>
     </div>
 </div>
 
@@ -136,6 +141,7 @@
     const resumeBtn = document.querySelector('#resume');
     const endBtn = document.querySelector('#end-session');
     const hideBtn = document.querySelector('#minimize');
+    const sound = document.querySelector('#sound');
     const eyes = document.querySelector('#current');
     const score = document.querySelector('#blink-score');
     const redDot = document.querySelector('#warning');
@@ -165,6 +171,7 @@
     let video = null;
     let stream = null;
     let landmarker = null;
+    let audio = null;
 
     FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm')
       .then(function (vision) {
@@ -286,7 +293,37 @@
       }
 
       video = null;
-      camBox.textContent = 'cam off';
+      camBox.textContent = '';
+    }
+
+    function beep() {
+      if (!sound.checked) {
+        return;
+      }
+
+      if (!audio) {
+        audio = new AudioContext();
+      }
+
+      if (audio.state === 'suspended') {
+        audio.resume();
+      }
+
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      const at = audio.currentTime;
+
+      osc.type = 'sine';
+      osc.frequency.value = 660;
+
+      gain.gain.setValueAtTime(0, at);
+      gain.gain.linearRampToValueAtTime(0.04, at + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.25);
+
+      osc.connect(gain);
+      gain.connect(audio.destination);
+      osc.start(at);
+      osc.stop(at + 0.26);
     }
 
     function warn(on) {
@@ -299,8 +336,17 @@
     }
 
     function edge(on) {
-      if (window.api && on !== edgeOn) {
-        edgeOn = on;
+      if (on === edgeOn) {
+        return;
+      }
+
+      edgeOn = on;
+
+      if (on) {
+        beep();
+      }
+
+      if (window.api) {
         window.api.near(on);
       }
     }
@@ -391,6 +437,7 @@
         if (!warned && dry >= 8000) {
           warned = true;
           warn(true);
+          beep();
           warns++;
           warnTxt.textContent = warns;
         }
