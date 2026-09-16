@@ -130,7 +130,7 @@
 </div>
 
 <div id="warning" style="display:none"></div>
-<div id="break-alert" hidden>Time for a break!</div>
+<div id="break-alert" hidden>Look 20 feet away for 20 seconds</div>
 
 <script type="module">
     import { FilesetResolver, FaceLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/vision_bundle.mjs';
@@ -154,7 +154,8 @@
     const sumTime = document.querySelector('#summary-time');
     const sumBlinks = document.querySelector('#summary-blinks');
     const sumWarns = document.querySelector('#summary-warnings');
-    const breakGap = 20 * 60 * 1000;
+    const breakGap = 20 * 1000;
+    const restGap = 40 * 1000;
 
     let blinks = 0;
     let warns = 0;
@@ -163,6 +164,7 @@
     let left = breakGap;
     let dueAt = 0;
     let tick = 0;
+    let rest = 0;
     let lastBlink = 0;
     let runId = 0;
     let camId = 0;
@@ -212,8 +214,31 @@
       if (left === 0) {
         clearInterval(tick);
         tick = 0;
-        breakBox.hidden = false;
+        beep();
+
+        if (window.api) {
+          window.api.note(true);
+        }
       }
+    }
+
+    function startRest() {
+      breakBox.hidden = false;
+      stopWatch();
+      rest = setTimeout(endRest, restGap);
+    }
+
+    function endRest() {
+      rest = 0;
+      breakBox.hidden = true;
+      left = breakGap;
+      beep();
+
+      if (state === 'active' && video) {
+        watch();
+      }
+
+      startBreak();
     }
 
     function startBreak() {
@@ -225,6 +250,15 @@
     }
 
     function stopBreak() {
+      if (window.api) {
+        window.api.note(false);
+      }
+
+      if (rest) {
+        clearTimeout(rest);
+        rest = 0;
+      }
+
       if (tick) {
         left = Math.max(0, dueAt - performance.now());
         clearInterval(tick);
@@ -504,6 +538,10 @@
       sumWarns.textContent = warns;
       sumBox.hidden = false;
     });
+
+    if (window.api) {
+      window.api.onRest(startRest);
+    }
 
     hideBtn.addEventListener('click', function () {
       if (window.api) {
