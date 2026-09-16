@@ -143,6 +143,7 @@
     let runId = 0;
     let camId = 0;
     let dotOn = false;
+    let edgeOn = false;
     let video = null;
     let stream = null;
     let landmarker = null;
@@ -279,11 +280,19 @@
       }
     }
 
+    function edge(on) {
+      if (window.api && on !== edgeOn) {
+        edgeOn = on;
+        window.api.near(on);
+      }
+    }
+
     function stopWatch() {
       runId++;
       eyes.textContent = '-';
       score.textContent = '-';
       warn(false);
+      edge(false);
     }
 
     function watch() {
@@ -292,6 +301,7 @@
       let shut = false;
       let face = false;
       let warned = false;
+      let near = false;
       lastBlink = performance.now();
 
       function loop() {
@@ -324,6 +334,24 @@
               warned = false;
               warn(false);
             }
+
+            const pts = out.faceLandmarks[0];
+
+            if (pts && video.videoWidth) {
+              const a = pts[234];
+              const b = pts[454];
+              const dx = (a.x - b.x) * video.videoWidth;
+              const dy = (a.y - b.y) * video.videoHeight;
+              const span = Math.hypot(dx, dy) / video.videoWidth;
+
+              if (span > 0.40) {
+                near = true;
+              } else if (span < 0.34) {
+                near = false;
+              }
+
+              edge(near);
+            }
           } else {
             eyes.textContent = 'no face';
             score.textContent = '-';
@@ -335,6 +363,8 @@
           lastBlink = performance.now();
           warned = false;
           warn(false);
+          near = false;
+          edge(false);
         }
 
         const dry = performance.now() - lastBlink;
